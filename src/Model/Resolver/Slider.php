@@ -1,83 +1,78 @@
 <?php
+
 /**
- * Scandiweb_SliderGraphQl
- *
- * @category    Scandiweb
- * @package     Scandiweb_SliderGraphQl
- * @author      Kriss Andrejevs <info@scandiweb.com>
- * @copyright   Copyright (c) 2018 Scandiweb, Ltd (https://scandiweb.com)
+ * @category    ScandiPWA
+ * @package     ScandiPWA_SliderGraphQl
+ * @copyright   Copyright © 2018 Scandiweb, Ltd (https://scandiweb.com)
+ * @copyright   Modifications © Selveq. All rights reserved.
+ * @license     OSL-3.0 (Open Software License ("OSL") v. 3.0)
+ * See LICENSE for license details.
  */
+
 declare(strict_types=1);
 
 namespace ScandiPWA\SliderGraphQl\Model\Resolver;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
-use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\GraphQl\Config\Element\Field;
-use Magento\Framework\GraphQl\Query\Resolver\Value;
-use Magento\Framework\GraphQl\Query\Resolver\ValueFactory;
+use Magento\Framework\GraphQl\Exception\GraphQlNoSuchEntityException;
 use Magento\Framework\GraphQl\Query\ResolverInterface;
-
-use Scandiweb\Slider\Model\ResourceModel\Slider\CollectionFactory as SliderCollectionFactory;
-use Scandiweb\Slider\Model\ResourceModel\Slide\CollectionFactory as SlideCollectionFactory;
+use Magento\Framework\GraphQl\Schema\Type\ResolveInfo;
 use Scandiweb\Slider\Model\ResourceModel\Map\CollectionFactory as MapCollectionFactory;
+use Scandiweb\Slider\Model\ResourceModel\Slide\CollectionFactory as SlideCollectionFactory;
+use Scandiweb\Slider\Model\ResourceModel\Slider\CollectionFactory as SliderCollectionFactory;
 
-/**
- * Class Slider
- * @package Scandiweb\SliderGraphQl\Model\Resolver
- */
 class Slider implements ResolverInterface
 {
-    /**
-     * @var ValueFactory
-     */
-    private $valueFactory;
+    // the storefront prepends only "/", so every image path leaves this resolver media-prefixed
+    private const IMAGE_FIELDS = [
+        'mobile_image',
+        'desktop_image',
+        'mobile_image_2',
+        'desktop_image_2',
+        'mobile_image_3',
+        'desktop_image_3',
+    ];
 
     /**
-     * @var \Scandiweb\Slider\Model\ResourceModel\Slider\CollectionFactory
-     */
-    protected $sliderCollectionFactory;
-
-    /**
-     * @var \Scandiweb\Slider\Model\ResourceModel\Slide\CollectionFactory
-     */
-    protected $slideCollectionFactory;
-
-    /**
-     * @var \Scandiweb\Slider\Model\ResourceModel\Map\CollectionFactory
-     */
-    protected $mapCollectionFactory;
-
-    /**
-     * Slider constructor.
-     * @param ValueFactory $valueFactory
-     * @param \Scandiweb\Slider\Model\ResourceModel\Slider\CollectionFactory $sliderCollectionFactory
-     * @param \Scandiweb\Slider\Model\ResourceModel\Slide\CollectionFactory $slideCollectionFactory
-     * @param \Scandiweb\Slider\Model\ResourceModel\Map\CollectionFactory $mapCollectionFactory
-     * @param \Magento\Catalog\Model\ResourceModel\Product\CollectionFactory $productCollectionFactory
+     * @param SliderCollectionFactory $sliderCollectionFactory
+     * @param SlideCollectionFactory $slideCollectionFactory
+     * @param MapCollectionFactory $mapCollectionFactory
      */
     public function __construct(
-        ValueFactory $valueFactory,
-        SliderCollectionFactory $sliderCollectionFactory,
-        SlideCollectionFactory $slideCollectionFactory,
-        MapCollectionFactory $mapCollectionFactory
+        private readonly SliderCollectionFactory $sliderCollectionFactory,
+        private readonly SlideCollectionFactory $slideCollectionFactory,
+        private readonly MapCollectionFactory $mapCollectionFactory
+    ) {}
 
-    ) {
-        $this->valueFactory = $valueFactory;
-        $this->sliderCollectionFactory = $sliderCollectionFactory;
-        $this->slideCollectionFactory = $slideCollectionFactory;
-        $this->mapCollectionFactory = $mapCollectionFactory;
-    }
-
-
-    public function getSlider($id)
+    /**
+     * the slider row with its active slides and their active hotspots, or null when there is no such slider
+     * @param string $id
+     * @return array|null
+     * @throws NoSuchEntityException
+     */
+    public function getSlider(string $id): ?array
     {
+        // the column is an unsigned integer, so anything else is a missing slider rather than a query
+        if (!ctype_digit($id)) {
+            return null;
+        }
+
+        $sliderId = (int)$id;
         $slider = $this->sliderCollectionFactory->create();
-        $slider->addFieldToFilter('slider_id', $id)->load();
+        $slider->addFieldToFilter('slider_id', $sliderId)
+            ->addFieldToFilter('is_active', 1)
+            ->load();
         $sliderData = $slider->getFirstItem()->getData();
 
+        // a disabled slider is a missing slider: nothing on the wire distinguishes the two
+        if (!$sliderData) {
+            return null;
+        }
+
         $slides = $this->slideCollectionFactory->create();
-        $slides->addSliderFilter($id)
+        $slides->addSliderFilter($sliderId)
             ->addStoreFilter()
             ->addDateFilter()
             ->addIsActiveFilter()
@@ -86,60 +81,48 @@ class Slider implements ResolverInterface
         $sliderData['slides'] = $slides->getData();
 
         $maps = $this->mapCollectionFactory->create();
-        $maps = $maps->addSliderFilter($id)
+        $maps = $maps->addSliderFilter($sliderId)
             ->addIsActiveFilter()
             ->getItems();
 
         foreach ($sliderData['slides'] as &$slide) {
-            if (array_key_exists('mobile_image', $slide) && isset($slide['mobile_image'])) {
-                $slide['mobile_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['mobile_image'];
-            }
-            if (array_key_exists('desktop_image', $slide) && isset($slide['desktop_image'])) {
-                $slide['desktop_image'] = DirectoryList::MEDIA . DIRECTORY_SEPARATOR . $slide['desktop_image'];
+            foreach (self::IMAGE_FIELDS as $imageField) {
+                if (isset($slide[$imageField])) {
+                    $slide[$imageField] = DirectoryList::MEDIA . '/' . $slide[$imageField];
+                }
             }
             foreach ($maps as $map) {
-                if ($map['slide_id'] === $slide['slide_id']) {
+                if ((int)$map['slide_id'] === (int)$slide['slide_id']) {
                     $slide['maps'][] = $map;
                 }
             }
         }
 
-        unset ($slide);
+        unset($slide);
 
         return $sliderData;
     }
 
     /**
-     * @param Field $field
-     * @param $context
-     * @param ResolveInfo $info
-     * @param array|null $value
-     * @param array|null $args
-     * @return Value
+     * {@inheritdoc}
+     * @throws GraphQlNoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function resolve(
-        Field       $field,
-                    $context,
+        Field $field,
+        $context,
         ResolveInfo $info,
-        array       $value = null,
-        array       $args = null
-    ): Value
-    {
-        $result = function () {
-            return null;
-        };
+        ?array $value = null,
+        ?array $args = null
+    ): array {
+        // the schema declares id as ID!, which reaches a resolver as a string and is never absent
+        $sliderData = $this->getSlider((string)$args['id']);
 
-        if (isset($args['id'])) {
-            $sliderData = $this->getSlider($args['id']);
+        if ($sliderData === null) {
+            // deliberately generic: an answer to an untrusted caller names no id and no reason
+            throw new GraphQlNoSuchEntityException(__('The slider does not exist.'));
         }
 
-        if ($sliderData) {
-            $result = function () use ($sliderData) {
-                return $sliderData;
-            };
-        }
-
-        return $this->valueFactory->create($result);
+        return $sliderData;
     }
-
 }

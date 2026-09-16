@@ -1,15 +1,20 @@
 <?php
+
 /**
- * Scandiweb_SliderGraphQl
- *
- * @category    Scandiweb
- * @package     Scandiweb_SliderGraphQl
- * @author      Kriss Andrejevs <info@scandiweb.com>
- * @copyright   Copyright (c) 2018 Scandiweb, Ltd (https://scandiweb.com)
+ * @category    ScandiPWA
+ * @package     ScandiPWA_SliderGraphQl
+ * @copyright   Copyright © 2018 Scandiweb, Ltd (https://scandiweb.com)
+ * @copyright   Modifications © Selveq. All rights reserved.
+ * @license     OSL-3.0 (Open Software License ("OSL") v. 3.0)
+ * See LICENSE for license details.
  */
 
-Magento\Framework\Component\ComponentRegistrar::register(
-    Magento\Framework\Component\ComponentRegistrar::MODULE,
+declare(strict_types=1);
+
+use Magento\Framework\Component\ComponentRegistrar;
+
+ComponentRegistrar::register(
+    ComponentRegistrar::MODULE,
     'ScandiPWA_SliderGraphQl',
     __DIR__
 );

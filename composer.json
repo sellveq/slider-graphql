@@ -1,13 +1,36 @@
 {
-    "name": "scandipwa/slider-graphql",
-    "description": "ScandiPWA Graphql extension for Slider",
+    "name": "selveq/slider-graphql",
+    "description": "Magento 2 Slider GraphQl extension for ScandiPWA theme",
     "type": "magento2-module",
+    "version": "3.0.0",
     "license": [
         "OSL-3.0"
     ],
+    "authors": [
+        {
+            "name": "Scandiweb",
+            "homepage": "https://scandiweb.com",
+            "role": "Original author"
+        },
+        {
+            "name": "Selveq",
+            "homepage": "https://selveq.com",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/selveq/slider-graphql/issues",
+        "source": "https://github.com/selveq/slider-graphql"
+    },
     "require": {
-        "magento/framework": "*",
-        "scandipwa/slider": "^2.0"
+        "php": "^8.3",
+        "magento/framework": "^103.0",
+        "magento/module-graph-ql": "^100.4",
+        "magento/module-graph-ql-cache": "^100.4",
+        "selveq/slider": "^3.0"
+    },
+    "replace": {
+        "scandipwa/slider-graphql": "*"
     },
     "autoload": {
         "files": [
@@ -16,5 +39,11 @@
         "psr-4": {
             "ScandiPWA\\SliderGraphQl\\": "src/"
         }
+    },
+    "archive": {
+        "exclude": [
+            "/.github",
+            "/.gitignore"
+        ]
     }
 }

@@ -1,72 +1,72 @@
-#/**
-#* Scandiweb_SliderGraphQl
-#*
-#* @category    Scandiweb
-#* @package     Scandiweb_SliderGraphQl
-#* @author      Kriss Andrejevs <info@scandiweb.com>
-#* @copyright   Copyright (c) 2018 Scandiweb, Ltd (https://scandiweb.com)
-#*/
+##
+# @category    ScandiPWA
+# @package     ScandiPWA_SliderGraphQl
+# @copyright   Copyright © 2018 Scandiweb, Ltd (https://scandiweb.com)
+# @copyright   Modifications © Selveq. All rights reserved.
+# @license     OSL-3.0 (Open Software License ("OSL") v. 3.0)
+# See LICENSE for license details.
+##
 
 type Query {
-    scandiwebSlider(id: ID!): Slider @resolver(class: "ScandiPWA\\SliderGraphQl\\Model\\Resolver\\Slider") @doc(description: "The scandiwebSlider entity returns slider data")
+    scandiwebSlider(id: ID!): Slider @resolver(class: "ScandiPWA\\SliderGraphQl\\Model\\Resolver\\Slider") @doc(description: "Fetch a Scandiweb_Slider slider with its active slides and image maps by slider id") @cache(cacheIdentity: "ScandiPWA\\SliderGraphQl\\Model\\Resolver\\Slider\\Identity")
 }
 
-type Slider @doc(description: "foo defines bar"){
-    slider_id: ID @doc(description: "")
-    title: String @doc(description: "")
-    is_active: Boolean @doc(description: "")
-    show_menu: Boolean @doc(description: "")
-    show_navigation: Boolean @doc(description: "")
-    slide_speed: Int @doc(description: "")
-    position: Int @doc(description: "")
-    animation_speed: Int @doc(description: "")
-    slides_to_display: Int @doc(description: "")
-    slides_to_scroll: Int @doc(description: "")
-    lazy_load: Boolean @doc(description: "")
-    slides_to_display_tablet: Int @doc(description: "")
-    slides_to_scroll_tablet: Int @doc(description: "")
-    slides_to_display_mobile: Int @doc(description: "")
-    slides_to_scroll_mobile: Int @doc(description: "")
-    slides: [Slide]
+type Slider @doc(description: "A slider configured in the Scandiweb_Slider admin, with display and animation settings") {
+    slider_id: ID @doc(description: "Slider entity id")
+    title: String @doc(description: "Admin title of the slider")
+    is_active: Boolean @doc(description: "Whether the slider is enabled")
+    show_menu: Boolean @doc(description: "Whether the slide navigation menu is shown")
+    show_navigation: Boolean @doc(description: "Whether prev/next navigation arrows are shown")
+    slide_speed: Int @doc(description: "Delay between automatic slide changes, in milliseconds")
+    position: Int @doc(description: "Sort position of the slider")
+    animation_speed: Int @doc(description: "Slide transition animation duration, in milliseconds")
+    slides_to_display: Int @doc(description: "Number of slides visible at once on desktop")
+    slides_to_scroll: Int @doc(description: "Number of slides scrolled per transition on desktop")
+    lazy_load: Boolean @doc(description: "Whether slide images are lazy-loaded")
+    slides_to_display_tablet: Int @doc(description: "Number of slides visible at once on tablet")
+    slides_to_scroll_tablet: Int @doc(description: "Number of slides scrolled per transition on tablet")
+    slides_to_display_mobile: Int @doc(description: "Number of slides visible at once on mobile")
+    slides_to_scroll_mobile: Int @doc(description: "Number of slides scrolled per transition on mobile")
+    slides: [Slide] @doc(description: "Active slides of the slider, in position order")
 }
 
-type Slide @doc(description: "") {
-    slide_id: ID @doc(description: "")
-    title: String @doc(description: "")
-    mobile_image: String @doc(description: "")
-    desktop_image: String @doc(description: "")
-    is_active: Boolean @doc(description: "")
-    position: Int @doc(description: "")
-    start_time: String @doc(description: "")
-    end_time: String @doc(description: "")
-    slide_link: String @doc(description: "")
-    slide_link_text: String @doc(description: "")
-    display_title: String @doc(description: "")
-    slide_text: String @doc(description: "")
-    embed_code: String @doc(description: "")
-    mobile_image_2: String @doc(description: "")
-    desktop_image_2: String @doc(description: "")
-    embed_code_2: String @doc(description: "")
-    slide_link_2: String @doc(description: "")
-    display_title_2: String @doc(description: "")
-    slide_text_2: String @doc(description: "")
-    slide_text_position_2: Int @doc(description: "")
-    mobile_image_3: String @doc(description: "")
-    desktop_image_3: String @doc(description: "")
-    embed_code_3: String @doc(description: "")
-    slide_link_3: String @doc(description: "")
-    display_title_3: String @doc(description: "")
-    slide_text_3: String @doc(description: "")
-    slide_text_position_3: Int @doc(description: "")
-    slide_text_position: Int @doc(description: "")
-    slide_width_class: String @doc(description: "")
-    maps: [Map]
+type Slide @doc(description: "A single slide with its media, text blocks (up to three), scheduling and link data") {
+    slide_id: ID @doc(description: "Slide entity id")
+    title: String @doc(description: "Admin title of the slide")
+    mobile_image: String @doc(description: "Path to the first mobile image")
+    desktop_image: String @doc(description: "Path to the first desktop image")
+    is_active: Boolean @doc(description: "Whether the slide is enabled")
+    position: Int @doc(description: "Sort position of the slide within the slider")
+    start_time: String @doc(description: "Datetime from which the slide is shown")
+    end_time: String @doc(description: "Datetime until which the slide is shown")
+    slide_link: String @doc(description: "Target URL of the first slide block")
+    slide_link_text: String @doc(description: "Link text of the first slide block")
+    display_title: String @doc(description: "Storefront title of the first slide block")
+    slide_text: String @doc(description: "HTML content of the first slide block")
+    embed_code: String @doc(description: "Embed HTML (e.g. video) of the first slide block")
+    mobile_image_2: String @doc(description: "Path to the second mobile image")
+    desktop_image_2: String @doc(description: "Path to the second desktop image")
+    embed_code_2: String @doc(description: "Embed HTML of the second slide block")
+    slide_link_2: String @doc(description: "Target URL of the second slide block")
+    display_title_2: String @doc(description: "Storefront title of the second slide block")
+    slide_text_2: String @doc(description: "HTML content of the second slide block")
+    slide_text_position_2: Int @doc(description: "Text block position of the second slide block")
+    mobile_image_3: String @doc(description: "Path to the third mobile image")
+    desktop_image_3: String @doc(description: "Path to the third desktop image")
+    embed_code_3: String @doc(description: "Embed HTML of the third slide block")
+    slide_link_3: String @doc(description: "Target URL of the third slide block")
+    display_title_3: String @doc(description: "Storefront title of the third slide block")
+    slide_text_3: String @doc(description: "HTML content of the third slide block")
+    slide_text_position_3: Int @doc(description: "Text block position of the third slide block")
+    slide_text_position: Int @doc(description: "Text block position of the first slide block")
+    slide_width_class: String @doc(description: "CSS class controlling the slide content width")
+    maps: [Map] @doc(description: "Active image maps (clickable areas) of the slide")
 }
 
-type Map @doc(description: "") {
-    map_id: ID @doc(description: "")
-    title: String @doc(description: "")
-    coordinates: String @doc(description: "")
-    is_active: Boolean @doc(description: "")
-    product_id: Int @doc(description: "")
+type Map @doc(description: "A clickable image-map area on a slide, linking to a product") {
+    map_id: ID @doc(description: "Map entity id")
+    title: String @doc(description: "Admin title of the map area")
+    coordinates: String @doc(description: "Comma-separated image-map area coordinates")
+    is_active: Boolean @doc(description: "Whether the map area is enabled")
+    product_id: Int @doc(description: "Id of the product the map area links to")
 }
